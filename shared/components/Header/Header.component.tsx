@@ -3,15 +3,18 @@ import React, {useEffect, useState} from 'react';
 import ArrowLeft from '../../../assets/images/arrow-left.svg';
 import {colors} from '../../styles/colors';
 import {getObjAsyncStorage} from '../../utils/asyncStorage';
+import { useNavigation } from '@react-navigation/native';
 
 const Header = () => {
   const [firstName, onChangeFirstName] = useState('');
   const [lastName, onChangeLastName] = useState('');
   const [avatar, onAvatarChange] = useState('');
+  const navigation = useNavigation();
+
   useEffect(() => {
     (async () => {
       const value = await getObjAsyncStorage('user');
-      if (value && value.isOnboardingCompleted === 'true') {
+      if (value && value.isOnboardingCompleted) {
         onChangeFirstName(value.name);
         onChangeLastName(value.lastName || '');
         onAvatarChange(value.avatar || '');
@@ -21,7 +24,11 @@ const Header = () => {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => {}}>
+      <Pressable
+        style={styles.backButton}
+        onPress={() => {
+          navigation.goBack();
+        }}>
         <ArrowLeft stroke={'white'} />
       </Pressable>
       <Image source={require('../../../assets/images/Logo.png')} />

@@ -38,7 +38,7 @@ const OnboardingScreen = ({
         isDisabled={!firstName || !(email && validateEmail(email))}
         onPress={async () => {
           await setObjAsyncStorage('user', {
-            isOnboardingCompleted: 'true',
+            isOnboardingCompleted: true,
             name: firstName,
             email: email,
           });

@@ -21,6 +21,13 @@ type ProfileScreenProps = {
   setIsOnboardingCompleted: Dispatch<SetStateAction<boolean>>;
 };
 
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../App';
+
+export type ProfileScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Profile'
+>;
 type Notifications = {
   orderStatuses: boolean;
   passwordChanges: boolean;
@@ -44,7 +51,7 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
   useEffect(() => {
     (async () => {
       const value = await getObjAsyncStorage('user');
-      if (value && value.isOnboardingCompleted === 'true') {
+      if (value && value.isOnboardingCompleted) {
         onChangeFirstName(value.name);
         onChangeEmail(value.email);
         onChangeLastName(value.lastName || '');
