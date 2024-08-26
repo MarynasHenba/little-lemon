@@ -1,24 +1,9 @@
-import {ScrollView, StyleSheet} from 'react-native';
-import React, {Dispatch, SetStateAction} from 'react';
+import React from 'react';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import {colors} from '../shared/styles/colors';
 import MenuList from './components/MenuList';
 import HeroBanner from './components/HeroBanner';
-
-export type MenuItemProps = {
-  name: string;
-  price: number;
-  description: string;
-  image: string;
-  category: string;
-};
-
-type HomeScreenProps = {
-  menuItems: MenuItemProps[];
-  filterSelections: boolean[];
-  setFilterSelections: Dispatch<SetStateAction<boolean[]>>;
-  searchBarText: string;
-  handleSearchChange: (text: string) => void;
-};
+import {HomeScreenProps} from './types/home.types';
 
 const HomeScreen = ({
   menuItems,
@@ -38,6 +23,7 @@ const HomeScreen = ({
         filterSelections={filterSelections}
         setFilterSelections={setFilterSelections}
       />
+      <View style={styles.bottomGap} />
     </ScrollView>
   );
 };
@@ -84,5 +70,8 @@ const styles = StyleSheet.create({
   menuTitle: {
     fontSize: 22,
     fontWeight: 'bold',
+  },
+  bottomGap: {
+    height: 50,
   },
 });

@@ -1,6 +1,6 @@
 import {
+  FlatList,
   Image,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,19 +21,14 @@ type ProfileScreenProps = {
   setIsOnboardingCompleted: Dispatch<SetStateAction<boolean>>;
 };
 
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../App';
+import {NotificationItem, Notifications, Options} from './types/profile.types';
 
-export type ProfileScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  'Profile'
->;
-type Notifications = {
-  orderStatuses: boolean;
-  passwordChanges: boolean;
-  specialOffers: boolean;
-  newsletter: boolean;
-};
+const notificationsData: NotificationItem[] = [
+  {title: 'Order statuses', propertyName: 'orderStatuses'},
+  {title: 'Password changes', propertyName: 'passwordChanges'},
+  {title: 'Special offers', propertyName: 'specialOffers'},
+  {title: 'Newsletter', propertyName: 'newsletter'},
+];
 
 const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
   const [avatar, onChangeAvatar] = useState('');
@@ -48,31 +43,12 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
     newsletter: false,
   });
 
-  useEffect(() => {
-    (async () => {
-      const value = await getObjAsyncStorage('user');
-      if (value && value.isOnboardingCompleted) {
-        onChangeFirstName(value.name);
-        onChangeEmail(value.email);
-        onChangeLastName(value.lastName || '');
-        onChangePhone(value.phone || '');
-        onChangeAvatar(value.avatar || '');
-        setNotifications({
-          orderStatuses: value?.notifications?.orderStatuses || false,
-          passwordChanges: value?.notifications?.passwordChanges || false,
-          specialOffers: value?.notifications?.specialOffers || false,
-          newsletter: value?.notifications?.newsletter || false,
-        });
-      }
-    })();
-  }, []);
-
-  const discardChanges = async () => {
+  const resetValues = async () => {
     const value = await getObjAsyncStorage('user');
-    if (value && Object.keys(value).length !== 0) {
-      onChangeFirstName(value.name || '');
+    if (value && value.isOnboardingCompleted) {
+      onChangeFirstName(value.name);
+      onChangeEmail(value.email);
       onChangeLastName(value.lastName || '');
-      onChangeEmail(value.email || '');
       onChangePhone(value.phone || '');
       onChangeAvatar(value.avatar || '');
       setNotifications({
@@ -83,6 +59,10 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
       });
     }
   };
+
+  useEffect(() => {
+    resetValues();
+  }, []);
 
   const saveChanges = async () => {
     const userData = await getObjAsyncStorage('user');
@@ -103,43 +83,20 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
     onChangeAvatar('');
   };
 
-  const toggleNotifications = (
-    option:
-      | 'ORDER_STATUSES'
-      | 'PASSWORD_CHANGES'
-      | 'SPECIAL_OFFERS'
-      | 'NEWSLETTER',
-  ) => {
-    switch (option) {
-      case 'ORDER_STATUSES':
-        setNotifications({
-          ...notifications,
-          orderStatuses: !notifications.orderStatuses,
-        });
-        break;
-      case 'PASSWORD_CHANGES':
-        setNotifications({
-          ...notifications,
-          passwordChanges: !notifications.passwordChanges,
-        });
-        break;
-      case 'SPECIAL_OFFERS':
-        setNotifications({
-          ...notifications,
-          specialOffers: !notifications.specialOffers,
-        });
-        break;
-      case 'NEWSLETTER':
-        setNotifications({
-          ...notifications,
-          newsletter: !notifications.newsletter,
-        });
-        break;
-
-      default:
-        break;
-    }
+  const toggleNotifications = (option: Options) => {
+    setNotifications({
+      ...notifications,
+      [option]: !notifications[option],
+    });
   };
+
+  const renderNotifications = ({item}: {item: NotificationItem}) => (
+    <Checkbox
+      {...item}
+      status={notifications[item.propertyName] ? 'checked' : 'unchecked'}
+      onPress={() => toggleNotifications(item.propertyName)}
+    />
+  );
 
   return (
     <ScrollView style={styles.container}>
@@ -172,7 +129,6 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
                 });
               }}
             />
-
             <ButtonView
               title="Remove"
               color="transparent"
@@ -212,50 +168,12 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
       </View>
       <View style={styles.section}>
         <Text style={styles.subtitle}>Email notifications</Text>
-        <Pressable
-          onPress={() => toggleNotifications('ORDER_STATUSES')}
-          style={styles.wrapper}>
-          <Checkbox
-            status={notifications.orderStatuses ? 'checked' : 'unchecked'}
-            onPress={() => {
-              toggleNotifications('ORDER_STATUSES');
-            }}
-          />
-          <Text>Password changes</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => toggleNotifications('PASSWORD_CHANGES')}
-          style={styles.wrapper}>
-          <Checkbox
-            status={notifications.passwordChanges ? 'checked' : 'unchecked'}
-            onPress={() => {
-              toggleNotifications('PASSWORD_CHANGES');
-            }}
-          />
-          <Text>Special offers</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => toggleNotifications('SPECIAL_OFFERS')}
-          style={styles.wrapper}>
-          <Checkbox
-            status={notifications.specialOffers ? 'checked' : 'unchecked'}
-            onPress={() => {
-              toggleNotifications('SPECIAL_OFFERS');
-            }}
-          />
-          <Text>Newsletter</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => toggleNotifications('NEWSLETTER')}
-          style={styles.wrapper}>
-          <Checkbox
-            status={notifications.newsletter ? 'checked' : 'unchecked'}
-            onPress={() => {
-              toggleNotifications('NEWSLETTER');
-            }}
-          />
-          <Text>Order statuses</Text>
-        </Pressable>
+        <FlatList
+          scrollEnabled={false}
+          data={notificationsData}
+          renderItem={renderNotifications}
+          keyExtractor={(item, index) => index.toString() + item.propertyName}
+        />
       </View>
       <View style={styles.section}>
         <ButtonView
@@ -270,7 +188,7 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
         <View style={styles.buttonsWrapper}>
           <ButtonView
             title="Discard changes"
-            onPress={discardChanges}
+            onPress={resetValues}
             color="transparent"
           />
           <ButtonView
@@ -280,6 +198,7 @@ const ProfileScreen = ({setIsOnboardingCompleted}: ProfileScreenProps) => {
           />
         </View>
       </View>
+      <View style={styles.bottomGap} />
     </ScrollView>
   );
 };
@@ -298,7 +217,6 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 15,
   },
-  wrapper: {flexDirection: 'row', alignItems: 'center', gap: 8},
   input: {
     height: 40,
     margin: 12,
@@ -344,5 +262,8 @@ const styles = StyleSheet.create({
     columnGap: 10,
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  bottomGap: {
+    height: 50,
   },
 });

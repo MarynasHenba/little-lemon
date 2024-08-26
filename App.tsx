@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import OnboardingScreen from './screens/Onboarding';
@@ -7,8 +6,7 @@ import {getObjAsyncStorage} from './shared/utils/asyncStorage';
 import ProfileScreen from './screens/Profile';
 import SplashScreen from './screens/Splash';
 import Header from './shared/components/Header/Header.component';
-import HomeScreen, {MenuItemProps} from './screens/Home';
-import LogoHeader from './shared/components/LogoHeader/LogoHeader.component';
+import HomeScreen from './screens/Home';
 import {
   getDBConnection,
   createTable,
@@ -19,6 +17,8 @@ import {
 import {fetchMenuItems} from './shared/services/menu-items';
 import {useUpdateEffect} from './shared/utils/useUpdateEffect';
 import {useDebounce} from './shared/hooks/useDebounce';
+import {MenuItemProps} from './screens/types/home.types';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -45,8 +45,26 @@ function App(): React.JSX.Element {
   );
   const debounceQuery = useDebounce(searchBarText);
 
-  const completeOnboarding = () => {
-    setIsOnboardingCompleted(true);
+  const completeOnboarding = async () => {
+    const value = await getObjAsyncStorage('user');
+    if (value && value.isOnboardingCompleted) {
+      setIsOnboardingCompleted(true);
+    }
+    setIsLoading(false);
+  };
+
+  const fetchData = async () => {
+    const db = await getDBConnection();
+    await createTable(db);
+
+    const storedMenuItems = await getMenuItems(db);
+    if (!storedMenuItems.length) {
+      const fetchedMenuItems = await fetchMenuItems();
+      setMenuItems(fetchedMenuItems);
+      await saveItems(db, fetchedMenuItems);
+    } else {
+      setMenuItems(storedMenuItems);
+    }
   };
 
   const handleSearchChange = (text: string) => {
@@ -54,29 +72,8 @@ function App(): React.JSX.Element {
   };
 
   useEffect(() => {
-    (async () => {
-      const value = await getObjAsyncStorage('user');
-      if (value && value.isOnboardingCompleted) {
-        completeOnboarding();
-      }
-      setIsLoading(false);
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const db = await getDBConnection();
-      await createTable(db);
-
-      const storedMenuItems = await getMenuItems(db);
-      if (!storedMenuItems.length) {
-        const fetchedMenuItems = await fetchMenuItems();
-        setMenuItems(fetchedMenuItems);
-        await saveItems(db, fetchedMenuItems);
-      } else {
-        setMenuItems(storedMenuItems);
-      }
-    })();
+    completeOnboarding();
+    fetchData();
   }, []);
 
   useUpdateEffect(() => {
@@ -107,7 +104,7 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator>
           {!isOnboardingCompleted ? (
@@ -119,7 +116,7 @@ function App(): React.JSX.Element {
                   setIsOnboardingCompleted={setIsOnboardingCompleted}
                 />
               )}
-              options={{headerShown: false}}
+              options={{header: Header}}
             />
           ) : (
             <>
@@ -135,7 +132,7 @@ function App(): React.JSX.Element {
                     handleSearchChange={handleSearchChange}
                   />
                 )}
-                options={{header: LogoHeader}}
+                options={{header: Header}}
               />
               <Stack.Screen
                 name="Profile"
@@ -151,12 +148,8 @@ function App(): React.JSX.Element {
           )}
         </Stack.Navigator>
       </NavigationContainer>
-    </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {flex: 1},
-});
 
 export default App;

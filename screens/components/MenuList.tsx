@@ -3,8 +3,8 @@ import React, {Dispatch, SetStateAction} from 'react';
 import {categories} from '../../App';
 import {colors} from '../../shared/styles/colors';
 import MenuItem from './MenuItem';
-import {MenuItemProps} from '../Home';
 import {ItemSeparator} from '../../shared/components/Separator/Separator';
+import {MenuItemProps} from '../types/home.types';
 
 type MenuListProps = {
   menuItems: MenuItemProps[];

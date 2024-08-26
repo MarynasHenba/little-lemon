@@ -2,7 +2,6 @@ import React, {Dispatch, SetStateAction, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import ButtonView from '../shared/components/Button/Button.component';
 import FormInput from '../shared/components/FormInput/FormInput.component';
-import LogoHeader from '../shared/components/LogoHeader/LogoHeader.component';
 import {setObjAsyncStorage} from '../shared/utils/asyncStorage';
 import {validateEmail} from '../shared/utils/validateEmail';
 
@@ -18,7 +17,6 @@ const OnboardingScreen = ({
 
   return (
     <View style={styles.container}>
-      <LogoHeader />
       <View>
         <FormInput
           value={firstName}

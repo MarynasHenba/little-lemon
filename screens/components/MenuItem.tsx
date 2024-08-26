@@ -1,7 +1,7 @@
 import {Image, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
-import {MenuItemProps} from '../Home';
 import {colors} from '../../shared/styles/colors';
+import {MenuItemProps} from '../types/home.types';
 
 const MenuItem = ({name, description, image, price}: MenuItemProps) => {
   const images = {

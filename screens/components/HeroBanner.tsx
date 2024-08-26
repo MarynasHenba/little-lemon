@@ -2,11 +2,7 @@ import {Image, StyleSheet, Text, View} from 'react-native';
 import React from 'react';
 import {colors} from '../../shared/styles/colors';
 import {Searchbar} from 'react-native-paper';
-
-type HeroBannerProps = {
-  searchBarText: string;
-  handleSearchChange: (text: string) => void;
-};
+import { HeroBannerProps } from '../types/home.types';
 
 const HeroBanner = ({searchBarText, handleSearchChange}: HeroBannerProps) => {
   return (
